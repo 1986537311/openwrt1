@@ -19,11 +19,10 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential flex bison gawk gcc-multilib g++-multilib libncurses-dev libssl-dev git rsync unzip wget
 
-      - name: Fix Git network & Clone Source
+      - name: Clone Source（使用镜像域名规避解析故障）
         run: |
           git config --global http.postBuffer 524288000
-          git config --global core.compression 0
-          git clone --depth 1 https://github.com/bleach85/lede.git openwrt
+          git clone --depth 1 https://mirror.ghproxy.com/https://github.com/bleach85/lede.git openwrt
           cd openwrt
           ./scripts/feeds update -a
           ./scripts/feeds install -a
