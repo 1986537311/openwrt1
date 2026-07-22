@@ -19,12 +19,11 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential flex bison gawk gcc-multilib g++-multilib libncurses-dev libssl-dev git rsync unzip wget
 
-      - name: Clone Source & Feeds
+      - name: Fix Git network & Clone Source
         run: |
-          git config --global http.lowSpeedLimit 1000
-          git config --global http.lowSpeedTime 90
+          git config --global http.postBuffer 524288000
           git config --global core.compression 0
-          git clone https://github.com/bleach85/lede.git openwrt
+          git clone --depth 1 https://github.com/bleach85/lede.git openwrt
           cd openwrt
           ./scripts/feeds update -a
           ./scripts/feeds install -a
@@ -43,7 +42,7 @@ jobs:
       - name: Build Firmware
         run: |
           cd openwrt
-          make -j2 V=s
+          make -j$(nproc) V=s
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
