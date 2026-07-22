@@ -1,0 +1,51 @@
+name: OpenWrt-Bleach
+run-name: Manual Build
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+    env:
+      TZ: Asia/Shanghai
+      TERM: dumb
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential flex bison gawk gcc-multilib g++-multilib libncurses-dev libssl-dev git rsync unzip wget
+
+      - name: Clone Source & Feeds
+        run: |
+          git config --global http.lowSpeedLimit 1000
+          git config --global http.lowSpeedTime 90
+          git config --global core.compression 0
+          git clone https://github.com/bleach85/lede.git openwrt
+          cd openwrt
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Load Config
+        run: |
+          cd openwrt
+          cp ../.config .config
+          yes "" | make olddefconfig
+
+      - name: Download Sources
+        run: |
+          cd openwrt
+          make download -j2
+
+      - name: Build Firmware
+        run: |
+          cd openwrt
+          make -j2 V=s
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: openwrt/bin/targets/x86_64
